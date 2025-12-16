@@ -5,6 +5,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
 )
 
+from django.utils import timezone
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None):
@@ -41,15 +42,23 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
+
 class Todo(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("in_progress", "In Progress"),
+        ("completed", "Completed"),
+        ("expired", "Expired"),
+    ]
+
     title = models.CharField(max_length=255)
     body = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    due_at = models.DateTimeField(null=True, blank=True)
-
     expires_at = models.DateTimeField(null=True, blank=True)
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
 
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name="todos_created"
@@ -59,4 +68,13 @@ class Todo(models.Model):
     )
 
     def __str__(self):
-        return self.title
+        return f"{self.title} [{self.status}]"
+
+    def save(self, *args, **kwargs):
+        if (
+            self.expires_at
+            and self.expires_at < timezone.now()
+            and self.status != "completed"
+        ):
+            self.status = "expired"
+        super().save(*args, **kwargs)

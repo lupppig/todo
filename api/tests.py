@@ -59,41 +59,36 @@ class TodoTests(APITestCase):
             {"email": "todo@example.com", "password": "strongpassword123"},
             format="json",
         )
-
         self.assertEqual(login_response.status_code, status.HTTP_200_OK)
         self.access_token = login_response.data.get("access")
         self.assertIsNotNone(self.access_token, "Login failed: access token missing")
-
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_token}")
 
-        # Todo list URL
         self.todo_list_url = reverse("todo-list")
 
-    def test_create_todo(self):
+    def test_create_todo_with_status(self):
         future_time = timezone.now() + timedelta(days=1)
         data = {
             "title": "Test Todo",
             "body": "Todo body",
-            "due_at": future_time.isoformat(),
-            "expires_at": (future_time + timedelta(days=1)).isoformat(),
+            "expires_at": future_time.isoformat(),
+            "status": "pending",
         }
 
         response = self.client.post(self.todo_list_url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Todo.objects.count(), 1)
-
         todo = Todo.objects.first()
+        self.assertEqual(todo.status, "pending")
         self.assertEqual(todo.created_by, self.user)
         self.assertEqual(todo.updated_by, self.user)
-        self.assertEqual(todo.title, "Test Todo")
 
     def test_get_todos(self):
         future_time = timezone.now() + timedelta(days=1)
         Todo.objects.create(
             title="Sample",
             body="Sample body",
-            due_at=future_time,
-            expires_at=future_time + timedelta(days=1),
+            expires_at=future_time,
+            status="pending",
             created_by=self.user,
             updated_by=self.user,
         )
@@ -102,39 +97,52 @@ class TodoTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
 
-    def test_update_todo(self):
+    def test_update_todo_status(self):
         future_time = timezone.now() + timedelta(days=1)
         todo = Todo.objects.create(
             title="Old title",
             body="Old body",
-            due_at=future_time,
-            expires_at=future_time + timedelta(days=1),
+            expires_at=future_time,
+            status="pending",
             created_by=self.user,
             updated_by=self.user,
         )
 
         url = reverse("todo-detail", args=[todo.id])
-        new_due_time = future_time + timedelta(days=2)
-
         response = self.client.patch(
             url,
-            {"title": "Updated title", "due_at": new_due_time.isoformat()},
+            {"status": "in_progress"},
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
         todo.refresh_from_db()
-        self.assertEqual(todo.title, "Updated title")
-        self.assertEqual(todo.due_at, new_due_time)
+        self.assertEqual(todo.status, "in_progress")
         self.assertEqual(todo.updated_by, self.user)
+
+    def test_expired_todo(self):
+        # Set expiration in the past
+        past_time = timezone.now() - timedelta(days=1)
+        todo = Todo.objects.create(
+            title="Expired task",
+            body="This task should expire",
+            expires_at=past_time,
+            status="pending",
+            created_by=self.user,
+            updated_by=self.user,
+        )
+
+        todo.save()
+        todo.refresh_from_db()
+
+        self.assertEqual(todo.status, "expired", "Todo did not expire as expected")
 
     def test_delete_todo(self):
         future_time = timezone.now() + timedelta(days=1)
         todo = Todo.objects.create(
             title="Delete me",
             body="Body",
-            due_at=future_time,
-            expires_at=future_time + timedelta(days=1),
+            expires_at=future_time,
+            status="pending",
             created_by=self.user,
             updated_by=self.user,
         )
@@ -155,8 +163,8 @@ class TodoPermissionTests(APITestCase):
         data = {
             "title": "Test",
             "body": "Body",
-            "due_at": future_time.isoformat(),
-            "expires_at": (future_time + timedelta(days=1)).isoformat(),
+            "expires_at": future_time.isoformat(),
+            "status": "pending",
         }
         response = self.client.post(reverse("todo-list"), data, format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

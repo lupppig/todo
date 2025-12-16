@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Todo
+from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 
 
@@ -58,3 +59,12 @@ class TodoViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(updated_by=self.request.user)
+
+    def get_queryset(self):
+        queryset = Todo.objects.filter(created_by=self.request.user)
+        now = timezone.now()
+        for todo in queryset:
+            if todo.expires_at and todo.expires_at < now and todo.status != "completed":
+                todo.status = "expired"
+                todo.save()
+        return queryset

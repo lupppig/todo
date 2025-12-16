@@ -3,15 +3,8 @@ from django.urls import path, include
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from rest_framework_simplejwt.authentication import JWTAuthentication
-import os
 from drf_yasg import openapi
 
-ENVIRONMENT = os.getenv("DEBUG").lower() == "true"
-
-if not ENVIRONMENT:
-    SWAGGER_URL = "https://todo-l9l1.onrender.com"
-else:
-    SWAGGER_URL = "http://localhost:8000"
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -22,7 +15,6 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=[permissions.AllowAny],
     authentication_classes=(JWTAuthentication,),
-    url=SWAGGER_URL,
 )
 
 API_VERSION = "api/v1/"

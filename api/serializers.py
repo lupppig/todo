@@ -33,6 +33,15 @@ class LoginSerializer(serializers.Serializer):
 
 
 class TodoSerializer(serializers.ModelSerializer):
+    status = serializers.ChoiceField(
+        choices=[
+            ("pending", "Pending"),
+            ("in_progress", "In Progress"),
+            ("completed", "Completed"),
+            ("expired", "Expired"),
+        ],
+        default="pending",
+    )
     class Meta:
         model = Todo
         fields = "__all__"
@@ -44,11 +53,6 @@ class TodoSerializer(serializers.ModelSerializer):
             "updated_by",
         )
 
-    def validate_due_at(self, value):
-        if value and value < timezone.now():
-            raise serializers.ValidationError("Due time must be now or in the future.")
-        return value
-
     def validate_expires_at(self, value):
         if value and value < timezone.now():
             raise serializers.ValidationError(
@@ -56,11 +60,13 @@ class TodoSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate(self, data):
-        due = data.get("due_at")
-        expires = data.get("expires_at")
-        if due and expires and due > expires:
-            raise serializers.ValidationError(
-                "Due time cannot be after expiration time."
-            )
-        return data
+    def validate_status(self, value):
+        if value not in dict(Todo.STATUS_CHOICES):
+            raise serializers.ValidationError("Invalid status value.")
+        return value
+
+    def update(self, instance, validated_data):
+        if "status" in validated_data:
+            if instance.status == "completed" and validated_data["status"] == "expired":
+                validated_data["status"] = "completed"
+        return super().update(instance, validated_data)
