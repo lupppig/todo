@@ -61,6 +61,9 @@ class TodoViewSet(viewsets.ModelViewSet):
         serializer.save(updated_by=self.request.user)
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Todo.objects.none()
+
         queryset = Todo.objects.filter(created_by=self.request.user)
         now = timezone.now()
         for todo in queryset:
