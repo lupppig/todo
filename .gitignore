@@ -1,0 +1,126 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+*.ipynb_checkpoints
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+pip-selfcheck.json
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.yarn-integrity
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# PEP 582; used by e.g. pipenv, but generally only for development
+__pypackages__/
+
+# virtualenv
+venv/
+.venv/
+env/
+.env/
+ENV/
+bin/
+lib/
+include/
+share/
+# A list of files that are always ignored.
+# These files are created by virtualenv, but are not part of the virtualenv
+# environment itself.
+# github.com
+/venv/*/pyvenv.cfg
+/venv/bin/activate
+/venv/bin/activate.csh
+/venv/bin/activate.fish
+/venv/bin/python
+/venv/bin/python[0-9]*
+/venv/bin/pip
+/venv/bin/pip[0-9]*
+/venv/lib/python[0-9]*/site-packages/
+/venv/lib64/python[0-9]*/site-packages/
+
+# Environments
+.env
+.venv
+
+# Package managers
+pids/
+*.pid
+*.seed
+*.log
+local_settings.py
+.hushlogin
+.vagrant/
+
+# Django stuff:
+*.log
+local_settings.py
+# .secret_key
+# .settings
+.djangorecipes/
+.env.sample
+# celery
+celerybeat.pid
+# dbt
+dbt_debug.log
+dbt_profile.yml
+logs/
+online.sh
+target/
+
+# Flask stuff:
+.flaskenv
+
+# Scrapy stuff:
+.scrapy
+
+# Editors and IDEs
+.idea/  # JetBrains IDEs (e.g., PyCharm)
+.vscode/ # VS Code
+*.swp
+*.bak
+*.swo
+*.pyc
+
+# OS-specific files
+.DS_Store # macOS
+Thumbs.db # Windows
